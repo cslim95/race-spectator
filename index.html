@@ -27,6 +27,7 @@
     <div id="map" aria-label="Race course map"></div>
     <svg id="overlay" aria-hidden="true">
       <g id="gKm"></g>
+      <g id="gSpots"></g>
       <g id="gPin"></g>
       <g id="gRunners"></g>
     </svg>
@@ -67,8 +68,15 @@
   </div>
 
   <aside class="panel">
-    <h2>Your runners <button id="clearBtn">Reset</button></h2>
+    <h2>
+      <span class="tabs" role="tablist">
+        <button role="tab" data-tab="runners" aria-selected="true">Runners</button>
+        <button role="tab" data-tab="plan" aria-selected="false">My plan <span class="count" id="planCount"></span></button>
+      </span>
+      <button id="clearBtn">Reset</button>
+    </h2>
     <div class="rlist" id="rlist"></div>
+    <div class="rlist" id="plist" hidden></div>
   </aside>
 </div>
 
@@ -76,6 +84,7 @@
 
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script src="js/gpx.js"></script>
+<script src="js/plan.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

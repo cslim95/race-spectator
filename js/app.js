@@ -272,7 +272,7 @@ function renderPin(){
   $("#gPin").innerHTML = '<g transform="translate('+p.x.toFixed(1)+','+p.y.toFixed(1)+')">'
     + '<circle class="pin" r="6"></circle><circle class="pin" r="13" fill="none" opacity=".45"></circle></g>';
 }
-function renderOverlay(){ renderKm(); renderPin(); renderRunners(); }
+function renderOverlay(){ renderKm(); renderSpots(); renderPin(); renderRunners(); }
 
 /* ---------- panel ---------- */
 function renderPanel(){
@@ -307,7 +307,7 @@ function renderClock(){
     : waiting ? waiting + " still to start" : "all finished";
   $("#nowBtn").dataset.live = live ? "1" : "0";
 }
-function renderAll(){ renderOverlay(); renderPanel(); renderClock(); }
+function renderAll(){ renderOverlay(); renderPanel(); renderPlan(); renderClock(); }
 
 /* ---------- race header, upload prompt, Now button ---------- */
 function renderRace(){
@@ -341,10 +341,11 @@ function renderRace(){
 
 const dial = $("#dialwrap"), ticksG = $("#ticks"), grab = $("#grab"), stage = $("#stage");
 let vel = 0, coasting = null, lastWhole = Math.floor(t), timeTouched = false;
-/* the bezel turns from half an hour before the first start to half an hour after the last finish */
+/* the bezel turns from half an hour before the first start (or planned spot) to half an hour after the last finish */
 function timeWindow(){
-  if (!runners.length) return [5*60, 15*60];
-  const s = Math.min(...runners.map(effStart)), f = Math.max(...runners.map(finishMin));
+  const times = plan.map(s => s.time);
+  if (!runners.length && !times.length) return [5*60, 15*60];
+  const s = Math.min(...runners.map(effStart), ...times), f = Math.max(...runners.map(finishMin), ...times);
   return [Math.max(0, Math.floor(s/30)*30 - 30), Math.min(1439, Math.ceil(f/30)*30 + 30)];
 }
 /* where to sit when we are not tracking live: just as the first wave goes */
@@ -426,8 +427,9 @@ $("#zFit").addEventListener("click", () => fitCourse(true));
 /* ---------- selection & course tap ---------- */
 svgOverlay.addEventListener("click", e => {
   const rm = e.target.closest(".rm");
-  if (!rm) return;
-  selected = rm.dataset.id; renderAll(); openDetail(selected);
+  if (rm){ selected = rm.dataset.id; renderAll(); openDetail(selected); return; }
+  const sp = e.target.closest(".spot");
+  if (sp){ showTab("plan"); focusSpot(sp.dataset.id); }
 });
 map.on("click", e => {
   if (!course) return;
@@ -447,6 +449,16 @@ $("#rlist").addEventListener("click", e => {
     if (p.x < w*.15 || p.x > w*.85 || p.y < h*.15 || p.y > h*.85) map.easeTo({center: ll, duration: 500});
   }
   renderAll(); openDetail(selected);
+});
+$("#plist").addEventListener("click", e => {
+  const ed = e.target.closest(".sedit");
+  if (ed){ openSpot(ed.dataset.edit); return; }
+  const c = e.target.closest(".scard");
+  if (c) focusSpot(c.dataset.id);
+});
+document.querySelector(".tabs").addEventListener("click", e => {
+  const b = e.target.closest("button[data-tab]");
+  if (b) showTab(b.dataset.tab);
 });
 
 /* ---------- modal ---------- */
@@ -604,11 +616,12 @@ function openPasses(d){
             + '<b>'+hhmm(o.at)+'</b></div>';
         }).join("") + '</div>'
       : '<div class="empty">Add a runner to see pass times.</div>')
-  + '<div class="actions"><button class="tbtn" id="p-clear" style="flex:0 0 auto">Clear pin</button>'
-    + '<button class="tbtn primary" id="p-close">Done</button></div>'
+  + '<div class="actions"><button class="tbtn" id="p-close" style="flex:0 0 auto">Done</button>'
+    + '<button class="tbtn primary" id="p-save">Save this spot</button></div>'
   );
+  /* tapping off the course clears the pin, so Done leaves it where it is */
   $("#p-close").addEventListener("click", closeModal);
-  $("#p-clear").addEventListener("click", () => { pin = null; renderAll(); closeModal(); });
+  $("#p-save").addEventListener("click", () => openSpot(null, d));
 }
 
 /* ---------- course: upload and race details ---------- */
@@ -655,7 +668,10 @@ function openRace(c, isNew){
       + opts.map(o => '<option value="'+o.m+'"'+(o.m === c.dist ? " selected" : "")+'>'+esc(o.label)+'</option>').join("")
       + '</select></div>'
   + '</div>'
-  + '<div class="field"><div class="note">The live clock uses this phone’s time zone and switches on for the race date.</div></div>'
+  + '<div class="field"><div class="note">The live clock uses this phone’s time zone and switches on for the race date.</div>'
+    + (isNew && plan.length ? '<div class="note warn">Your '+plan.length+' saved spot'+(plan.length > 1 ? "s" : "")
+        + ' belong to the old course and will be cleared.</div>' : '')
+  + '</div>'
   + '<div class="actions"><button class="tbtn" id="r-cancel" style="flex:0 0 auto">Cancel</button>'
     + '<button class="tbtn primary" id="r-save">'+(isNew ? "Use this course" : "Save")+'</button></div>'
   + (isNew ? "" : '<button class="danger" id="r-new" style="color:var(--accent)">Load a different GPX</button>')
@@ -668,6 +684,7 @@ function openRace(c, isNew){
     if (!next) return;
     setCourse(next); saveCourse();
     pin = null; selected = null;
+    if (isNew && plan.length){ plan = []; selectedSpot = null; savePlan(); }
     closeModal(); drawCourse(); renderRace();
     if (isNew){ fitCourse(true); if (!timeTouched && !live) t = defaultTime(); }
     setTime(t, live);
@@ -731,6 +748,14 @@ function saveView(){
 $("#addBtn").addEventListener("click", () => openEdit(null));
 $("#shareBtn").addEventListener("click", openCrew);
 $("#clearBtn").addEventListener("click", () => {
+  if (tab === "plan"){
+    openModal('<h3>Clear your plan?</h3><p class="sub">This removes all your saved spots on this device.</p>'
+      + '<div class="actions"><button class="tbtn" id="x-no" style="flex:0 0 auto">Keep them</button>'
+      + '<button class="tbtn primary" id="x-yes">Clear plan</button></div>');
+    $("#x-no").addEventListener("click", closeModal);
+    $("#x-yes").addEventListener("click", () => { plan = []; selectedSpot = null; savePlan(); closeModal(); setTime(t, live); });
+    return;
+  }
   openModal('<h3>Clear all runners?</h3><p class="sub">This removes everyone from your list on this device.</p>'
     + '<div class="actions"><button class="tbtn" id="x-no" style="flex:0 0 auto">Keep them</button>'
     + '<button class="tbtn primary" id="x-yes">Clear all</button></div>');
@@ -739,7 +764,8 @@ $("#clearBtn").addEventListener("click", () => {
 });
 
 runners = load() || [];
-renderRace(); renderPanel();
+plan = loadPlan();
+renderRace(); renderPanel(); showTab("runners");
 map.resize();
 if (!restoredView) fitCourse(false);
 const nowM = nowMin(), [winLo, winHi] = timeWindow();

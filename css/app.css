@@ -182,7 +182,57 @@ button{font:inherit;color:inherit;cursor:pointer}
 }
 .panel h2 button{margin-left:auto; background:none; border:none; color:var(--accent);
   font-size:11px; font-weight:700; letter-spacing:.04em; text-transform:none; padding:2px 4px}
+.panel h2 .tabs{display:flex; gap:16px}
+.panel h2 .tabs button{
+  margin:0; padding:3px 0; border-radius:0; border-bottom:2px solid transparent;
+  color:var(--muted); font-size:10.5px; letter-spacing:.13em; text-transform:uppercase;
+}
+.panel h2 .tabs button[aria-selected="true"]{color:var(--ink); border-bottom-color:var(--accent)}
+.count{display:inline-block; min-width:16px; padding:1px 5px; margin-left:3px; border-radius:999px;
+  background:var(--accent); color:#fff; font-size:9.5px; letter-spacing:0; text-align:center}
+.count:empty{display:none}
 .rlist{overflow-y:auto; padding:0 10px 14px; display:flex; flex-direction:column; gap:7px; min-height:0}
+
+/* ---------- my plan ---------- */
+.scard{
+  background:var(--panel2); border:1px solid var(--line); border-radius:12px;
+  padding:10px 11px; display:grid; grid-template-columns:auto 1fr auto; gap:8px 10px;
+  align-items:center; cursor:pointer; transition:border-color .15s;
+}
+.scard:hover{border-color:var(--accent)}
+.scard.sel{border-color:var(--accent); box-shadow:inset 0 0 0 1px var(--accent)}
+.snum{width:30px; height:30px; border-radius:50%; display:grid; place-items:center;
+  background:var(--ink); color:var(--ground); font-size:12px; font-weight:700}
+.scard.sel .snum{background:var(--accent); color:#fff}
+.spass{grid-column:1/-1; display:flex; flex-wrap:wrap; gap:5px}
+.pp{display:inline-flex; align-items:center; gap:5px; padding:2px 8px 2px 2px; border-radius:999px;
+  background:var(--panel); border:1px solid var(--line);
+  font-family:"Chivo Mono",monospace; font-size:11px; font-variant-numeric:tabular-nums}
+.pp i{width:18px; height:18px; border-radius:50%; display:grid; place-items:center;
+  font:700 8px Archivo,sans-serif; font-style:normal; color:#fff}
+.pp.miss{color:var(--faint); text-decoration:line-through}
+.pp.miss i{opacity:.45}
+.swarn{grid-column:1/-1; font-size:11.5px; font-weight:600; color:var(--warn)}
+.sedit{grid-column:1/-1; justify-self:start; background:none; border:none; padding:0;
+  color:var(--accent); font-size:11px; font-weight:700}
+.travel{display:flex; align-items:center; justify-content:space-between; gap:10px;
+  margin-left:25px; padding:3px 4px 3px 14px; border-left:2px dashed var(--line);
+  font-size:11px; color:var(--muted)}
+.travel b{flex:0 0 auto; font-size:10px; letter-spacing:.08em; text-transform:uppercase}
+.travel.ok b{color:var(--ok)}
+.travel.tight b{color:var(--warn)}
+.travel.short b{color:#c0392b}
+.plan-foot{padding:4px 8px; font-size:10.5px; color:var(--faint); text-align:center}
+.lbl.warn, .note.warn{color:var(--warn)}
+
+/* numbered spot pins on the map */
+.spot{pointer-events:auto; cursor:pointer}
+.spot .sdot{fill:var(--ink); stroke:var(--ground); stroke-width:2.5}
+.spot.sel .sdot{fill:var(--accent)}
+.spot .snumt{fill:var(--ground); font:700 11px Archivo,sans-serif; text-anchor:middle; dominant-baseline:central}
+.spot.sel .snumt{fill:#fff}
+.spot .stag{fill:var(--panel2); stroke:var(--line)}
+.spot .stimet{fill:var(--ink); font:600 10px "Chivo Mono",monospace; text-anchor:middle; dominant-baseline:central}
 .rcard{
   background:var(--panel2); border:1px solid var(--line); border-radius:12px;
   padding:10px 11px; display:grid; grid-template-columns:auto 1fr auto; gap:10px;
