@@ -3,34 +3,43 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Sydney Marathon Spotter</title>
+<title>Race Spectator</title>
+<meta name="description" content="Follow your runners around any race course. Upload the GPX, add their start times and goals, and turn the dial to see where they are.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Chivo+Mono:wght@300;400;600&display=swap">
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
 <link rel="stylesheet" href="css/app.css">
 </head>
 <body>
 <div id="app">
   <header class="topbar">
     <div class="brand">
-      <b>Sydney Marathon Spotter</b>
-      <span>Sun 30 Aug 2026 &middot; 42.195 km</span>
+      <b>Race Spectator</b>
+      <span id="raceLine">Upload a course to start</span>
     </div>
+    <button class="tbtn" id="courseBtn" title="Race details or a new GPX">Course</button>
     <button class="tbtn" id="shareBtn" title="Share or load a crew list">Crew</button>
-    <button class="tbtn primary" id="addBtn">Add runner</button>
+    <button class="tbtn primary" id="addBtn"><span class="hide-sm">Add runner</span><span class="show-sm">+ Runner</span></button>
   </header>
 
   <div class="stage" id="stage">
-    <svg id="map" preserveAspectRatio="xMidYMid meet" aria-label="Sydney Marathon course map">
-      <g id="gWater"></g>
-      <g id="gParks"></g>
-      <path id="courseHalo" class="course-halo"></path>
-      <path id="coursePath" class="course"></path>
+    <div id="map" aria-label="Race course map"></div>
+    <svg id="overlay" aria-hidden="true">
       <g id="gKm"></g>
-      <g id="gLm"></g>
       <g id="gPin"></g>
       <g id="gRunners"></g>
     </svg>
+
+    <div class="empty-course" id="emptyCourse">
+      <div class="drop">
+        <b>Drop a GPX file to start</b>
+        <span>Your race course, exported from Strava, Garmin or the race website. It stays on this device.</span>
+        <button class="tbtn primary" id="pickGpx">Choose GPX file</button>
+        <div class="err" id="gpxErr" role="alert"></div>
+      </div>
+    </div>
+    <input type="file" id="gpxFile" accept=".gpx,application/gpx+xml" hidden>
 
     <div class="dialwrap" id="dialwrap">
       <div class="glass" aria-hidden="true">
@@ -54,8 +63,7 @@
       <button id="zOut" title="Zoom out" aria-label="Zoom out">&minus;</button>
       <button id="zFit" class="fit" title="Fit the whole course" aria-label="Fit the whole course">FIT</button>
     </div>
-    <div class="zlevel" id="zlevel">1.0&times;</div>
-    <div class="hint" id="hint">Drag the ring to move through the morning &middot; tap the course to see who passes</div>
+    <div class="hint" id="hint">Drag the ring to move through the race &middot; tap the course to see who passes</div>
   </div>
 
   <aside class="panel">
@@ -66,7 +74,8 @@
 
 <div class="scrim" id="scrim"><div class="modal" id="modal"></div></div>
 
-<script src="js/course-sydney.js"></script>
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script src="js/gpx.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>
