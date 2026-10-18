@@ -18,6 +18,7 @@
       <b>Race Spectator</b>
       <span id="raceLine">Upload a course to start</span>
     </div>
+    <button class="tbtn round" id="helpBtn" title="How it works" aria-label="How it works">?</button>
     <button class="tbtn" id="courseBtn" title="Race details or a new GPX">Course</button>
     <button class="tbtn" id="shareBtn" title="Share or load a crew list">Crew</button>
     <button class="tbtn primary" id="addBtn"><span class="hide-sm">Add runner</span><span class="show-sm">+ Runner</span></button>
@@ -37,6 +38,7 @@
         <b>Drop a GPX file to start</b>
         <span>Your race course, exported from Strava, Garmin or the race website. It stays on this device.</span>
         <button class="tbtn primary" id="pickGpx">Choose GPX file</button>
+        <button class="linkbtn" id="trySample">or try a sample race</button>
         <div class="err" id="gpxErr" role="alert"></div>
       </div>
     </div>
@@ -82,9 +84,24 @@
 
 <div class="scrim" id="scrim"><div class="modal" id="modal"></div></div>
 
+<div class="tour" id="tour" hidden>
+  <div class="tour-hole"></div>
+  <div class="tour-card" role="dialog" aria-live="polite" aria-label="How it works">
+    <div class="tour-step"></div>
+    <h4></h4>
+    <p></p>
+    <div class="tour-actions">
+      <button class="tour-skip">Skip tour</button>
+      <button class="tbtn" data-back>Back</button>
+      <button class="tbtn primary" data-next>Next</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script src="js/gpx.js"></script>
 <script src="js/plan.js"></script>
 <script src="js/app.js"></script>
+<script src="js/tour.js"></script>
 </body>
 </html>

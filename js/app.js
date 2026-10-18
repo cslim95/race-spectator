@@ -682,15 +682,46 @@ function openRace(c, isNew){
     const next = normaliseCourse({v:1, pts:c.pts, name: $("#r-name").value.trim() || "My race",
                                   date: $("#r-date").value, dist: Number($("#r-dist").value)});
     if (!next) return;
-    setCourse(next); saveCourse();
-    pin = null; selected = null;
-    if (isNew && plan.length){ plan = []; selectedSpot = null; savePlan(); }
-    closeModal(); drawCourse(); renderRace();
-    if (isNew){ fitCourse(true); if (!timeTouched && !live) t = defaultTime(); }
-    setTime(t, live);
+    closeModal(); applyCourse(next, isNew);
   });
 }
+/* sample runners are tagged so a real course can take them away again */
+const SAMPLE_ID = "sample-";
+function applyCourse(next, isNew, sample){
+  setCourse(next); saveCourse();
+  pin = null; selected = null;
+  if (isNew && plan.length){ plan = []; selectedSpot = null; savePlan(); }
+  if (isNew && !sample && runners.some(r => r.id.startsWith(SAMPLE_ID))){
+    runners = runners.filter(r => !r.id.startsWith(SAMPLE_ID)); save();
+  }
+  drawCourse(); renderRace();
+  if (isNew){ fitCourse(true); if (!timeTouched && !live) t = defaultTime(); }
+  setTime(t, live);
+  tourCourseLoaded();
+}
 $("#courseBtn").addEventListener("click", () => course ? openRace(course, false) : pickGpx());
+
+/* the bundled Harbour 10K with three made-up runners, so the app can be explored without a GPX */
+async function loadSample(){
+  try{
+    const res = await fetch("samples/harbour-10k.gpx");
+    if (!res.ok) throw new Error();
+    const c = parseGpx(await res.text(), "harbour-10k.gpx");
+    if (!runners.length){
+      runners = [
+        {id:SAMPLE_ID+"a", name:"Ash Mehta",   colour:PALETTE[0], start:7*60,    goal:48*60},
+        {id:SAMPLE_ID+"b", name:"Priya Raman", colour:PALETTE[1], start:7*60,    goal:58*60},
+        {id:SAMPLE_ID+"c", name:"Tom Delaney", colour:PALETTE[2], start:7*60+5,  goal:72*60},
+      ].map(normalise);
+      save();
+    }
+    timeTouched = false; live = false;
+    applyCourse(normaliseCourse(c), true, true);
+  }catch(e){
+    $("#gpxErr").textContent = "The sample race couldn’t be loaded - try a GPX of your own.";
+  }
+}
+$("#trySample").addEventListener("click", loadSample);
 
 /* ---------- crew share ----------
    Copy/paste code for now - replaced by share links (crew + course in the URL) in a later step. */
